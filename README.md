@@ -48,9 +48,12 @@ Using this dataset for mapping keywords to film
 ## 🛠️ Local Setup
 1. Clone repository
 2. Create and activate virtual env:
+   - macOS/Linux:
+     - `python3 -m venv .venv`
+     - `source .venv/bin/activate`
    - Windows (PowerShell):
      - `python -m venv .venv`
-     - `.\.venv\Scripts\Activate`
+     - `\.venv\Scripts\Activate`
 3. Install deps:
    - `pip install -r requirements.txt`
 4. (Optional) Customize environment variables:
@@ -60,6 +63,16 @@ Using this dataset for mapping keywords to film
 6. Run app:
    - `python -m app`
 7. Open `http://127.0.0.1:5000` in browser
+
+## 🧾 Devcontainer
+This repository includes devcontainer support for Visual Studio Code Remote - Containers.
+
+1. Install VS Code + Remote - Containers extension.
+2. Open folder in Container: `Remote-Containers: Reopen in Container`.
+3. Container includes Python, dependencies and extensions configured by `.devcontainer`.
+4. From within container:
+   - `python app/main.py`
+5. Open `http://127.0.0.1:5000` after container starts (port forwarding may be required).
 
 ## 🔧 Environment Variables (config.py)
 - `SECRET_KEY`: Flask session key (default: `change-this-secret-key`)
@@ -76,26 +89,34 @@ Using this dataset for mapping keywords to film
 - `Message`: id, chat_id FK, role (`user`/`assistant`), content, created_at
 
 ## 🔗 API Endpoints
+The app serves frontend at `/` (Flask template `index.html`). All JSON APIs are under `/api` blueprint.
+
 ### GET `/api/chats`
-List chats for current browser session.
+- List chats for current browser session (by session client ID).
+- Response: `{ "chats": [{ ... }] }`
 
 ### POST `/api/chats`
-Create new chat with optional JSON `{ "title": "..." }`.
+- Create new chat with optional JSON payload:
+  - `{ "title": "..." }` (default: `Новий чат`).
+- Response: `{ "chat": { ... } }`, status `201`.
 
 ### GET `/api/chats/<chat_id>/messages`
-Load chat metadata + messages.
+- Load chat metadata + messages for a given `chat_id`.
+- Response includes `chat` and `messages` arrays.
 
 ### PATCH `/api/chats/<chat_id>`
-Rename chat with JSON `{ "title": "new title" }`.
+- Rename chat with JSON `{ "title": "new title" }`.
+- Returns updated `chat` object.
 
 ### DELETE `/api/chats/<chat_id>`
-Delete chat and all its messages.
+- Delete chat and related messages.
+- Returns `{ "status": "deleted" }`.
 
 ### POST `/api/chats/<chat_id>/stream`
-Send user question for model-based movie search. JSON: `{ "message": "..." }`.
-
-- Under the hood it appends message to DB, queries model with full chat history, streams tokens via SSE.
-- At completion returns completed assistant message and optionally a Netflix URL if title extracted.
+- Send user message and stream model response via SSE.
+- Request JSON: `{ "message": "..." }`.
+- SSE events: `chat`, `user_message`, `analysis`, `retrieval`, `token`, `done`, `error`.
+- Final `done` event includes `assistant_message` and optional `netflix_search_url`.
 
 ## 🎯 Model Prompt Logic
 - System prompt loaded from `config.SYSTEM_PROMPT_PATH` or default:
