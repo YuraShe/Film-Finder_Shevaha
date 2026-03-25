@@ -22,7 +22,6 @@ def main():
     ids = []
 
     for idx, (title, keywords) in enumerate(raw_data.items()):
-        # Один фільм = один документ
         search_text = f"Title: {title}. Keywords: {', '.join(keywords)}"
 
         documents.append(search_text)
@@ -31,8 +30,6 @@ def main():
             "keywords_count": len(keywords),
         })
         ids.append(f"movie_{idx}")
-
-    # Рекомендується батчами
     BATCH_SIZE = 32
 
     for start in range(0, len(documents), BATCH_SIZE):
