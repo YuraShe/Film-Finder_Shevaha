@@ -6,9 +6,9 @@ from openai import OpenAI
 BASE_DIR = Path(__file__).resolve().parent
 
 SECRET_KEY = os.getenv("SECRET_KEY", "change-this-secret-key")
-API_BASE = os.getenv("API_BASE", "http://26.191.128.167:1234/v1")
+API_BASE = os.getenv("API_BASE", "https://kurim.ithope.eu/v1")
 API_KEY = os.getenv("API_KEY", "lm-studio")
-MODEL_NAME = os.getenv("MODEL_NAME", "google/gemma-3-4b")
+MODEL_NAME = os.getenv("MODEL_NAME", "google/gemma-3-27b")
 TEMPERATURE = float(os.getenv("TEMPERATURE", "0.4"))
 MAX_TOKENS = int(os.getenv("MAX_TOKENS", "700"))
 
