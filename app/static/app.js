@@ -9,6 +9,26 @@ const formEl = document.getElementById("chat-form");
 const inputEl = document.getElementById("user-input");
 const sendBtnEl = document.getElementById("send-btn");
 
+// Mobile sidebar
+const sidebarEl = document.getElementById("sidebar");
+const sidebarOverlay = document.getElementById("sidebar-overlay");
+const sidebarOpenBtn = document.getElementById("sidebar-open-btn");
+const sidebarCloseBtn = document.getElementById("sidebar-close-btn");
+
+function openSidebar() {
+    sidebarEl.classList.add("open");
+    sidebarOverlay.classList.add("visible");
+}
+
+function closeSidebar() {
+    sidebarEl.classList.remove("open");
+    sidebarOverlay.classList.remove("visible");
+}
+
+sidebarOpenBtn.addEventListener("click", openSidebar);
+sidebarCloseBtn.addEventListener("click", closeSidebar);
+sidebarOverlay.addEventListener("click", closeSidebar);
+
 // Process Server-Sent Events buffer
 function processSSEBuffer(buffer, callbacks) {
     const lines = buffer.split('\n');
@@ -299,7 +319,7 @@ function renderChatList(chats) {
             <div class="chat-item-title">${escapeHtml(chat.title)}</div>
             <div class="chat-item-meta">${formatDate(chat.updated_at)}</div>
         `;
-        btn.addEventListener("click", () => openChat(chat.id));
+        btn.addEventListener("click", () => { openChat(chat.id); closeSidebar(); });
         chatListEl.appendChild(btn);
     }
 }
