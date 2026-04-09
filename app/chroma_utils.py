@@ -2,7 +2,10 @@ import chromadb
 from sentence_transformers import SentenceTransformer
 from typing import Optional, Any
 
-import config
+try:
+    from . import config
+except ImportError:  # pragma: no cover - fallback for direct script-style imports
+    import config
 
 _embedder: Optional[SentenceTransformer] = None
 _chroma_client: Optional[Any] = None
@@ -10,19 +13,30 @@ _movie_collection: Optional[Any] = None
 
 
 def get_embedder() -> SentenceTransformer:
+    """Vytvoří a uloží do cache instanci embedovacího modelu sentence-transformers."""
     global _embedder
 
     if _embedder is None:
-        _embedder = SentenceTransformer(config.EMBEDDING_MODEL)
+        _embedder = SentenceTransformer(
+            config.EMBEDDING_MODEL,
+            cache_folder=str(config.SENTENCE_TRANSFORMERS_HOME),
+        )
 
     return _embedder
 
 
 def get_chroma_collection():
+    """Vytvoří a uloží do cache handle na cílovou Chroma kolekci."""
     global _chroma_client, _movie_collection
 
     if _chroma_client is None:
-        _chroma_client = chromadb.PersistentClient(path=config.CHROMA_PATH)
+        if config.CHROMA_HOST:
+            _chroma_client = chromadb.HttpClient(
+                host=config.CHROMA_HOST,
+                port=config.CHROMA_PORT,
+            )
+        else:
+            _chroma_client = chromadb.PersistentClient(path=config.CHROMA_PATH)
 
     if _movie_collection is None:
         _movie_collection = _chroma_client.get_or_create_collection(
@@ -33,6 +47,7 @@ def get_chroma_collection():
 
 
 def search_movies(user_query: str, n_results: int = 5) -> list[dict]:
+    """Prohledá kolekci filmů podle podobnosti embeddingů a vrátí výsledky."""
     user_query = (user_query or "").strip()
     if not user_query:
         return []

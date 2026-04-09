@@ -1,133 +1,141 @@
 # Film-Finder
-<p align="center">
-  <img src="image.png" alt="My image" width="300">
-</p>
 
-## 📌 Overview
-Film-Finder is a Flask-based web application that uses an OpenAI-compatible large language model to help users find movies from partial memories, scenes, characters, tone, actors, and other hints.
+Film-Finder is a Flask web app that helps identify movies from incomplete memories.
+It combines:
+- chat history persisted in SQLite,
+- retrieval from a local Chroma collection,
+- generation with an OpenAI-compatible chat completion API,
+- SSE streaming to the browser UI.
 
-The app stores conversation history in a local SQLite database and supports multi-session chat flows with persistent chat titles and message history. It is designed with a simple Web UI and server-sent events (SSE) streaming responses for smooth real-time assistant updates.
+## Dataset
+- Source: https://www.kaggle.com/datasets/antonio23/keywords-top-100-movies
+- File used by ingestion script: `datasets/keywords_top100_movies.json`
 
+## Key Features
+- Multi-chat session flow with create, rename, and delete
+- Movie signal extraction from full user history
+- Retrieval gating by confidence and keyword count
+- Chroma vector search with sentence-transformers embeddings
+- Streaming assistant output via SSE (`token`, `done`, `error`)
+- Auto-generated TMDB search link when title is detected (`tmdb_search_url`)
 
+## Project Structure
+- `app/main.py`: app entrypoint
+- `app/__init__.py`: Flask app factory and SQLAlchemy init
+- `app/routes.py`: REST + SSE endpoints
+- `app/models.py`: `Chat` and `Message` models
+- `app/analyzer.py`: analysis logic and prompt rules
+- `app/chroma_utils.py`: embedding + Chroma access
+- `app/utils.py`: serialization and helper utilities
+- `app/static/`: frontend JS/CSS
+- `app/templates/index.html`: main page
+- `app/scripts/ingest_movies.py`: dataset to Chroma ingestion
 
-## Vector DB spec
-https://www.kaggle.com/datasets/antonio23/keywords-top-100-movies
-Using this dataset for mapping keywords to film 
+## Requirements
+- Python 3.11+
+- Dependencies in `requirements.txt`
+- OpenAI-compatible endpoint (`OPENAI_BASE_URL`) and API key (`OPENAI_API_KEY`)
 
+## Local Run
+1. Create and activate venv.
+2. Install dependencies.
+3. Optionally add `.env` values.
+4. Ingest dataset to Chroma.
+5. Start the app.
 
+PowerShell example:
 
-## 🚀 Key Features
-- Chat-based movie discovery assistant
-- Streaming responses from an OpenAI-compatible model (`openai` client)
-- Automatically persists chats and messages to SQLite
-- Chat list with create, rename, delete
-- Message history reconciled for model context
-- Netflix search link generation for confidently detected movie title
-- Configurable model + temperature + token limits via environment
-- System-prompt file support (default Ukrainian fallback)
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate
+pip install -r requirements.txt
+python -m app.scripts.ingest_movies
+python -m app.main
+```
 
-## 🧩 Architecture
-- `main.py`: Entry point that creates and runs the Flask app
-- `app/__init__.py`: Flask app factory
-- `app/models.py`: SQLAlchemy database models (Chat, Message)
-- `app/routes.py`: Flask routes and API endpoints
-- `app/utils.py`: Utility functions for serialization, validation, etc.
-- `app/chroma_utils.py`: ChromaDB and embedding utilities
-- `app/analyzer.py`: Movie analysis and LLM interaction logic
-- `config.py`: Configuration management via environment variables
-- `scripts/`: Utility scripts for data ingestion and testing
-- `templates/index.html`: Single-page frontend UI
-- `static/app.js`: Frontend logic for API calls and SSE
-- `static/styles.css`: UI styling
+Open: `http://127.0.0.1:5000`
 
-## ⚙️ Requirements
-- Python 3.11+ recommended
-- Dependencies from `requirements.txt` (Flask, Flask-SQLAlchemy, openai-client, etc.)
-- Local or hosted API compatible with OpenAI chat completions (e.g., LM Studio or OpenAI)
+## Docker Compose
+Start:
 
-## 🛠️ Local Setup
-1. Clone repository
-2. Create and activate virtual env:
-   - Windows (PowerShell):
-     - `python -m venv .venv`
-     - `.\.venv\Scripts\Activate`
-3. Install deps:
-   - `pip install -r requirements.txt`
-4. (Optional) Customize environment variables:
-   - `SECRET_KEY`, `API_BASE`, `API_KEY`, `MODEL_NAME`, `TEMPERATURE`, `MAX_TOKENS`, `SYSTEM_PROMPT_PATH`, `DATABASE_URL`
-5. (Optional) Ingest movie data into ChromaDB:
-   - `python -m app.scripts.ingest_movies`
-6. Run app:
-   - `python -m app`
-7. Open `http://127.0.0.1:5000` in browser
+```bash
+docker compose up --build
+```
 
-## 🔧 Environment Variables (config.py)
-- `SECRET_KEY`: Flask session key (default: `change-this-secret-key`)
-- `API_BASE`: LLM API base URL (default: `http://127.0.0.1:1234/v1`)
-- `API_KEY`: LLM API key (default: `lm-studio`)
-- `MODEL_NAME`: model path/name (default: `google/gemma-3-4b`)
-- `TEMPERATURE`: float, default `0.4`
-- `MAX_TOKENS`: integer, default `700`
-- `SYSTEM_PROMPT_PATH`: path to system prompt file (default `system-prompt.txt`)
-- `DATABASE_URL`: SQLAlchemy URL (default `sqlite:///movie_finder.db`)
+Important runtime notes:
+- App writes SQLite and Chroma data to writable paths in `/tmp` by default in compose.
+- Hugging Face cache paths are also configured under `/tmp/film_finder_cache`.
 
-## 🗂️ DB Schema
-- `Chat`: id (UUID), client_id (browser session), title, created_at, updated_at
-- `Message`: id, chat_id FK, role (`user`/`assistant`), content, created_at
+## Environment Variables
+Configured in `app/config.py`.
 
-## 🔗 API Endpoints
-### GET `/api/chats`
-List chats for current browser session.
+- `SECRET_KEY` (default: `change-this-secret-key`)
+- `OPENAI_BASE_URL` or fallback `API_BASE`
+- `OPENAI_API_KEY` or fallback `API_KEY`
+- `MODEL_NAME` (default: `gemma3:27b`)
+- `TEMPERATURE` (default: `0.4`)
+- `MAX_TOKENS` (default: `700`)
+- `SYSTEM_PROMPT_PATH` (default: `<repo>/system-prompt.txt`)
+- `DATABASE_URL` (default: `sqlite:////tmp/movie_finder.db`)
+- `CHROMA_PATH` (default: `<repo>/chroma_movies`, with writable fallback to temp)
+- `COLLECTION_NAME` (default: `movies`)
+- `EMBEDDING_MODEL` (default: `sentence-transformers/all-MiniLM-L6-v2`)
+- `RETRIEVAL_TOP_K` (default: `5`)
+- `HF_TOKEN` (recommended for higher Hugging Face limits)
+- `APP_CACHE_DIR`, `HF_HOME`, `HF_HUB_CACHE`, `TRANSFORMERS_CACHE`, `SENTENCE_TRANSFORMERS_HOME`
 
-### POST `/api/chats`
-Create new chat with optional JSON `{ "title": "..." }`.
+The config includes writable-path fallback logic for read-only environments.
 
-### GET `/api/chats/<chat_id>/messages`
-Load chat metadata + messages.
+## API
 
-### PATCH `/api/chats/<chat_id>`
-Rename chat with JSON `{ "title": "new title" }`.
+### `GET /api/chats`
+Returns chats for current browser session.
 
-### DELETE `/api/chats/<chat_id>`
-Delete chat and all its messages.
+### `POST /api/chats`
+Creates chat. Optional body: `{ "title": "..." }`.
 
-### POST `/api/chats/<chat_id>/stream`
-Send user question for model-based movie search. JSON: `{ "message": "..." }`.
+### `GET /api/chats/<chat_id>/messages`
+Returns chat metadata and messages.
 
-- Under the hood it appends message to DB, queries model with full chat history, streams tokens via SSE.
-- At completion returns completed assistant message and optionally a Netflix URL if title extracted.
+### `PATCH /api/chats/<chat_id>`
+Renames chat. Body: `{ "title": "new title" }`.
 
-## 🎯 Model Prompt Logic
-- System prompt loaded from `config.SYSTEM_PROMPT_PATH` or default:
-  `Ти корисний асистент з пошуку фільмів.`
-- History is aggregated as messages from DB plus system prompt.
-- Output streaming set through SSE events: `chat`, `user_message`, `token`, `done`, `error`.
+### `DELETE /api/chats/<chat_id>`
+Deletes chat and its messages.
 
-## 🧠 Extracting Film Title
-- The helper `extract_high_confidence_title` parses assistant text for `Назва:` line in the form of:
-  - `Назва: ...`
-  - `Рік: ...` (optional)
-  - `Чому це підходить: ...` (optional)
-- If found, `build_tmdb_search_url` returns: `https://www.netflix.com/search?q=<title>`.
+### `POST /api/chats/<chat_id>/stream`
+Body: `{ "message": "..." }`
 
-## 🖥️ UI Behavior
-- Sidebar: list chats + new-chat button
-- Main view: chat title, description hint, past messages, composer
-- Controls: rename/delete chat, send message, line breaks with Shift+Enter
-- Extra panel for inferred Netflix link appears after each assistant answer
+SSE events emitted:
+- `chat`
+- `user_message`
+- `analysis`
+- `retrieval`
+- `token`
+- `done`
+- `error`
 
-## 🧪 Troubleshooting
-- `sqlite` file path if relating to `DATABASE_URL`; ensure directory writable
-- `OpenAI` client errors: verify `API_BASE` and `API_KEY` for your LLM backend
-- SSE stream freeze: watch browser network tab for event framing and Dot instead of chunk
-- Model returns poor results: tune `TEMPERATURE` lower (0.2-0.6) and increase system prompt specificity
+`done` payload includes:
+- `assistant_message`
+- `detected_title`
+- `tmdb_search_url`
 
-## 🧾 Extending the App
-- Add user authentication, per-account chat isolation instead of session cookie
-- Add external search engines (IMDb, TMDB) using extracted titles
-- Provide conversation analytics (hit rate / known title accuracy)
-- Add tests for endpoints (pytest, Flask test client)
-- Dockerize for production with `docker-compose` and persistent service volume
+## Retrieval and Answering Flow
+1. Analyzer extracts structured signals from user messages only.
+2. Retrieval is used when confidence is:
+    - `high`, or
+    - `medium` with at least 5 aggregated keywords.
+3. Retrieved candidates are injected into final model prompt.
+4. Assistant response is streamed and persisted.
+5. If `Title: ...` is found, a TMDB search URL is generated.
 
-## ℹ️ License
-Add your desired license, e.g., MIT.
+## Troubleshooting
+- Read-only filesystem errors:
+   use temp-backed paths (`/tmp`) for DB, Chroma, and caches.
+- Hugging Face warning about unauthenticated requests:
+   set `HF_TOKEN` to improve limits/speed.
+- Empty or weak retrieval:
+   check ingestion and tune prompt/query quality.
+
+## License
+Add your preferred license (for example: MIT).

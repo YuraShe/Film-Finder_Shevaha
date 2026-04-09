@@ -9,6 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 def create_app() -> Flask:
+    """Create and configure the Flask application instance."""
     app = Flask(__name__)
     app.config["SECRET_KEY"] = config.SECRET_KEY
     app.config["SQLALCHEMY_DATABASE_URI"] = config.DATABASE_URL
@@ -23,6 +24,7 @@ def create_app() -> Flask:
 
     @app.route("/")
     def index():
+        """Render the main chat interface page."""
         return render_template("index.html")
 
     return app

@@ -255,8 +255,8 @@ async function handleSendMessage(event) {
                         chatTitleEl.textContent = payload.chat.title;
                     }
 
-                    if (payload.netflix_search_url && payload.detected_title) {
-                        showNetflixCard(payload.detected_title, payload.netflix_search_url);
+                    if (payload.tmdb_search_url && payload.detected_title) {
+                        showTmdbCard(payload.detected_title, payload.tmdb_search_url);
                     }
 
                     fetchChats();
@@ -356,18 +356,18 @@ function appendMessage(role, text, typing = false, autoScroll = true) {
     return bubble;
 }
 
-function showNetflixCard(title, url) {
+function showTmdbCard(title, url) {
     extraPanelEl.classList.remove("hidden");
     extraPanelEl.innerHTML = `
-        <div class="netflix-card">
+        <div class="tmdb-card">
             <div>
-                <div class="netflix-card-title">Maybe it's: ${escapeHtml(title)}</div>
-                <div class="netflix-card-subtitle">
-                    Opening Netflix search by title
+                <div class="tmdb-card-title">Maybe it's: ${escapeHtml(title)}</div>
+                <div class="tmdb-card-subtitle">
+                    Opening TMDB search by title
                 </div>
             </div>
             <a class="link-btn" href="${url}" target="_blank" rel="noopener noreferrer">
-                Open in Netflix
+                Open in TMDB
             </a>
         </div>
     `;

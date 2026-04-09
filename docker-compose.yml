@@ -2,31 +2,35 @@ services:
   app:
     build:
       context: .
-      dockerfile: .devcontainer/Dockerfile
+      dockerfile: Dockerfile
     ports:
-      - "5001:5001"
-    volumes:
-      - .:/workspace:cached
-      - /workspace/__pycache__
+      - "5000:5000"
     environment:
       - FLASK_ENV=development
+      - PORT=5000
       - SECRET_KEY=change-this-secret-key
-      - API_BASE=http://host.docker.internal:1234/v1
-      - API_KEY=lm-studio
-      - MODEL_NAME=google/gemma-3-4b
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - MODEL_NAME=gemma3:27b
       - TEMPERATURE=0.4
       - MAX_TOKENS=700
-      - SYSTEM_PROMPT_PATH=/workspace/system-prompt.txt
-      - DATABASE_URL=sqlite:///movie_finder.db
+      - SYSTEM_PROMPT_PATH=/app/system-prompt.txt
+      - DATABASE_URL=sqlite:////data/movie_finder.db
+      - CHROMA_HOST=vectordb
+      - CHROMA_PORT=8000
+      - APP_CACHE_DIR=/data/film_finder_cache
+      - HF_HOME=/data/film_finder_cache/huggingface
+      - HF_HUB_CACHE=/data/film_finder_cache/huggingface/hub
+      - TRANSFORMERS_CACHE=/data/film_finder_cache/huggingface/transformers
+      - SENTENCE_TRANSFORMERS_HOME=/data/film_finder_cache/sentence_transformers
+      - HF_TOKEN=${HF_TOKEN}
     depends_on:
-      - chromadb
+      - vectordb
 
-  chromadb:
-    image: ghcr.io/chroma-core/chroma:latest
+  vectordb:
+    image: chromadb/chroma
     ports:
-      - "8001:8001"
-    volumes:
-      - chroma_data:/chroma
-
-volumes:
-  chroma_data:
+      - "8000:8000"
+    environment:
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=/data/chroma

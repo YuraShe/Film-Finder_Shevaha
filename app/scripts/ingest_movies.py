@@ -11,6 +11,7 @@ import config
 DATASET_PATH = config.BASE_DIR.parent / "datasets" / "keywords_top100_movies.json"
 
 def main():
+    """Načte záznamy datasetu, vytvoří jejich embeddingy a vloží je do Chroma kolekce."""
     embedder = get_embedder()
     collection = get_chroma_collection()
 

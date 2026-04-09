@@ -30,6 +30,7 @@ api_bp = Blueprint('api', __name__)
 
 @api_bp.get("/chats")
 def list_chats():
+    """Vrátí seznam chatů pro aktuální relaci prohlížeče."""
     client_id = get_client_id()
     chats = (
         Chat.query.filter_by(client_id=client_id)
@@ -41,9 +42,10 @@ def list_chats():
 
 @api_bp.post("/chats")
 def create_chat():
+    """Vytvoří nový chat pro aktuální relaci."""
     client_id = get_client_id()
     payload = request.get_json(silent=True) or {}
-    title = (payload.get("title") or "").strip() or "Новий чат"
+    title = (payload.get("title") or "").strip() or "New Chat"
 
     chat = Chat(client_id=client_id, title=title)
     db.session.add(chat)
@@ -54,6 +56,7 @@ def create_chat():
 
 @api_bp.get("/chats/<chat_id>/messages")
 def get_messages(chat_id: str):
+    """Vrátí metadata chatu a seřazené zprávy podle ID chatu."""
     try:
         chat = get_chat_or_404(chat_id)
     except ValueError as exc:
@@ -68,6 +71,7 @@ def get_messages(chat_id: str):
 
 @api_bp.patch("/chats/<chat_id>")
 def rename_chat(chat_id: str):
+    """Přejmenuje existující chat patřící k aktuální relaci."""
     try:
         chat = get_chat_or_404(chat_id)
     except ValueError as exc:
@@ -77,7 +81,7 @@ def rename_chat(chat_id: str):
     new_title = (payload.get("title") or "").strip()
 
     if not new_title:
-        return jsonify({"error": "Нова назва чату порожня"}), 400
+        return jsonify({"error": "New chat title is empty"}), 400
 
     chat.title = new_title[:200]
     chat.updated_at = utcnow()
@@ -88,6 +92,7 @@ def rename_chat(chat_id: str):
 
 @api_bp.delete("/chats/<chat_id>")
 def delete_chat(chat_id: str):
+    """Smaže chat a všechny jeho zprávy."""
     try:
         chat = get_chat_or_404(chat_id)
     except ValueError as exc:
@@ -102,6 +107,7 @@ def delete_chat(chat_id: str):
 
 @api_bp.post("/chats/<chat_id>/stream")
 def stream_chat(chat_id: str):
+    """Streamuje odpověď asistenta na zprávu uživatele přes SSE."""
     try:
         chat = get_chat_or_404(chat_id)
     except ValueError as exc:
@@ -111,12 +117,12 @@ def stream_chat(chat_id: str):
     user_message = (payload.get("message") or "").strip()
 
     if not user_message:
-        return jsonify({"error": "Повідомлення порожнє"}), 400
+        return jsonify({"error": "Message is empty"}), 400
 
     user_db_message = Message(chat_id=chat.id, role="user", content=user_message)
     db.session.add(user_db_message)
 
-    if chat.title == "Новий чат":
+    if chat.title == "New Chat":
         chat.title = suggest_chat_title(user_message)
 
     chat.updated_at = utcnow()
@@ -132,6 +138,7 @@ def stream_chat(chat_id: str):
 
     @stream_with_context
     def generate():
+        """Generuje SSE události pro analýzu, vyhledávání a tokeny výstupu modelu."""
         assistant_parts: list[str] = []
 
         yield sse("chat", {"chat": serialize_chat(chat)})
@@ -209,7 +216,7 @@ def stream_chat(chat_id: str):
             assistant_text = "".join(assistant_parts).strip()
 
             if not assistant_text:
-                assistant_text = "Не вдалося згенерувати відповідь."
+                assistant_text = "Failed to generate a response."
 
             assistant_db_message = Message(
                 chat_id=chat.id,
@@ -221,7 +228,7 @@ def stream_chat(chat_id: str):
             db.session.commit()
 
             detected_title = extract_high_confidence_title(assistant_text)
-            netflix_url = build_tmdb_search_url(detected_title)
+            tmdb_url = build_tmdb_search_url(detected_title)
 
             yield sse(
                 "done",
@@ -229,7 +236,7 @@ def stream_chat(chat_id: str):
                     "chat": serialize_chat(chat),
                     "assistant_message": serialize_message(assistant_db_message),
                     "detected_title": detected_title,
-                    "netflix_search_url": netflix_url,
+                    "tmdb_search_url": tmdb_url,
                 },
             )
 

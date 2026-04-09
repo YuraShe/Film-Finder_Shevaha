@@ -18,7 +18,7 @@ Workflow:
 
 2. If the information is insufficient:
    - ask 1 to 3 clarifying questions
-   - questions must be short and максимально useful for narrowing down options
+   - questions must be short and maximally useful for narrowing down options
    - do NOT overwhelm the user with too many questions
 
 3. After each user response:
