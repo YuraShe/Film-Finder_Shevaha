@@ -72,7 +72,7 @@ button {
 
 .sidebar {
     border-right: 1px solid var(--border);
-    background: rgba(7, 13, 25, 0.82);
+    background: var(--panel-2);
     backdrop-filter: blur(12px);
     padding: 20px 16px;
     display: flex;
@@ -135,19 +135,19 @@ button {
     text-align: left;
     border-radius: 18px;
     border: 1px solid transparent;
-    background: rgba(255, 255, 255, 0.03);
+    background: color-mix(in srgb, var(--text) 8%, transparent);
     padding: 14px 14px;
     color: var(--text);
 }
 
 .chat-item:hover {
-    background: rgba(255, 255, 255, 0.06);
+    background: color-mix(in srgb, var(--text) 14%, transparent);
     transform: translateY(-1px);
 }
 
 .chat-item.active {
-    background: rgba(124, 92, 255, 0.18);
-    border-color: rgba(124, 92, 255, 0.4);
+    background: color-mix(in srgb, var(--primary) 22%, transparent);
+    border-color: color-mix(in srgb, var(--primary) 45%, transparent);
 }
 
 .chat-item-title {
@@ -355,18 +355,18 @@ button {
 }
 
 .ghost-btn {
-    background: rgba(255, 255, 255, 0.06);
+    background: color-mix(in srgb, var(--text) 7%, transparent);
     color: var(--text);
     border: 1px solid var(--border);
 }
 
 .ghost-btn:hover {
-    background: rgba(255, 255, 255, 0.09);
+    background: color-mix(in srgb, var(--text) 12%, transparent);
 }
 
 .ghost-btn.danger {
-    color: #ffd7df;
-    border-color: rgba(255, 95, 122, 0.25);
+    color: var(--danger);
+    border-color: color-mix(in srgb, var(--danger) 35%, transparent);
 }
 
 .link-btn {
