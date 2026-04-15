@@ -73,6 +73,7 @@ Why it matches: <short explanation>
 5. Do not say you searched a vector database unless needed.
 6. Do not reveal internal reasoning.
 7. Be concise, natural, analytical, and helpful.
+8. Respond in the same language as the latest user message.
 """
 
 
@@ -84,6 +85,7 @@ Rules:
 2. Do not provide a random candidate list if evidence is too weak.
 3. Do not reveal internal reasoning.
 4. Be friendly and focused.
+5. Respond in the same language as the latest user message.
 """
 
 

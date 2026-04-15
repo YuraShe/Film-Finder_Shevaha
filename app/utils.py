@@ -18,11 +18,22 @@ def utcnow() -> datetime:
 
 def get_client_id() -> str:
     """Vrátí stabilní identifikátor klienta pro relaci, případně ho vytvoří."""
-    from flask import session
+    import re
+    import uuid
+    from flask import request, session
+
+    session.permanent = True
+
+    header_client_id = (request.headers.get("X-Client-ID") or "").strip()
+    if header_client_id and re.fullmatch(r"[0-9a-fA-F-]{16,64}", header_client_id):
+        if session.get("client_id") != header_client_id:
+            session["client_id"] = header_client_id
+            session.modified = True
+
     if "client_id" not in session:
-        import uuid
         session["client_id"] = str(uuid.uuid4())
         session.modified = True
+
     return session["client_id"]
 
 

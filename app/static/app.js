@@ -1,6 +1,11 @@
 let currentChatId = null;
 let isStreaming = false;
 
+const STORAGE_KEYS = {
+    clientId: "movieFinderClientId",
+    theme: "movieFinderTheme",
+};
+
 const chatListEl = document.getElementById("chat-list");
 const messagesEl = document.getElementById("messages");
 const chatTitleEl = document.getElementById("chat-title");
@@ -8,6 +13,7 @@ const extraPanelEl = document.getElementById("extra-panel");
 const formEl = document.getElementById("chat-form");
 const inputEl = document.getElementById("user-input");
 const sendBtnEl = document.getElementById("send-btn");
+const themeToggleBtnEl = document.getElementById("theme-toggle-btn");
 
 // Mobile sidebar
 const sidebarEl = document.getElementById("sidebar");
@@ -28,6 +34,7 @@ function closeSidebar() {
 sidebarOpenBtn.addEventListener("click", openSidebar);
 sidebarCloseBtn.addEventListener("click", closeSidebar);
 sidebarOverlay.addEventListener("click", closeSidebar);
+themeToggleBtnEl.addEventListener("click", toggleTheme);
 
 // Process Server-Sent Events buffer
 function processSSEBuffer(buffer, callbacks) {
@@ -106,8 +113,54 @@ inputEl.addEventListener("keydown", (event) => {
 inputEl.addEventListener("input", autoResizeTextarea);
 
 document.addEventListener("DOMContentLoaded", async () => {
+    ensurePersistentClientId();
+    initTheme();
     await bootstrap();
 });
+
+function generateUuid() {
+    if (typeof crypto !== "undefined" && crypto.randomUUID) {
+        return crypto.randomUUID();
+    }
+
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (ch) => {
+        const r = Math.random() * 16 | 0;
+        const v = ch === "x" ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+    });
+}
+
+function ensurePersistentClientId() {
+    let clientId = localStorage.getItem(STORAGE_KEYS.clientId);
+
+    if (!clientId) {
+        clientId = generateUuid();
+        localStorage.setItem(STORAGE_KEYS.clientId, clientId);
+    }
+
+    return clientId;
+}
+
+function getClientId() {
+    return localStorage.getItem(STORAGE_KEYS.clientId) || ensurePersistentClientId();
+}
+
+function setTheme(theme) {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem(STORAGE_KEYS.theme, theme);
+    themeToggleBtnEl.textContent = theme === "light" ? "Theme: Light" : "Theme: Dark";
+}
+
+function initTheme() {
+    const saved = localStorage.getItem(STORAGE_KEYS.theme);
+    const initialTheme = saved === "light" ? "light" : "dark";
+    setTheme(initialTheme);
+}
+
+function toggleTheme() {
+    const current = document.documentElement.getAttribute("data-theme") || "dark";
+    setTheme(current === "dark" ? "light" : "dark");
+}
 
 async function bootstrap() {
     const chats = await fetchChats();
@@ -125,6 +178,7 @@ async function api(url, options = {}) {
     const response = await fetch(url, {
         headers: {
             "Content-Type": "application/json",
+            "X-Client-ID": getClientId(),
             ...(options.headers || {}),
         },
         ...options,
@@ -241,6 +295,7 @@ async function handleSendMessage(event) {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                "X-Client-ID": getClientId(),
             },
             body: JSON.stringify({ message: text }),
         });
@@ -424,7 +479,8 @@ function escapeHtml(value) {
 
 function formatDate(isoDate) {
     const date = new Date(isoDate);
-    return date.toLocaleString("en-US", {
+    const locale = navigator.language || "en-US";
+    return date.toLocaleString(locale, {
         day: "2-digit",
         month: "2-digit",
         hour: "2-digit",
