@@ -1,13 +1,12 @@
 import sys
 import os
 
-# Add the current directory's parent (app/) to the path
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from chroma_utils import search_movies
 
 def main():
-    """Spustí ukázkový sémantický dotaz na Chroma a vypíše nalezené filmy."""
     query = "1990s Chemical burn on hand, man with no name, self inflicted burn injury"
     print(f"Searching for: {query}")
     found = search_movies(query, n_results=5)
