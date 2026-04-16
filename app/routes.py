@@ -41,7 +41,7 @@ def list_chats():
 
 @api_bp.post("/chats")
 def create_chat():
-    """Vytvoří nový chat pro aktuální relaci."""
+
     client_id = get_client_id()
     payload = request.get_json(silent=True) or {}
     title = (payload.get("title") or "").strip() or "New Chat"
