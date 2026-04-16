@@ -113,7 +113,7 @@ def extract_json_object(text: str) -> dict:
 
 
 def normalize_analysis(data: dict) -> dict:
-    """Normalizuje výstup analyzátoru do předvídatelného schématu a seznamu klíčových slov."""
+   
     normalized = {
         "need_search": bool(data.get("need_search", False)),
         "confidence": str(data.get("confidence", "low")).strip().lower() or "low",
@@ -154,7 +154,7 @@ def normalize_analysis(data: dict) -> dict:
 
 
 def analyze_conversation_for_retrieval(history_messages: list[dict]) -> dict:
-    """Spustí model analyzátoru nad historií uživatele a vrátí normalizované signály."""
+    
     response = client.chat.completions.create(
         model=config.MODEL_NAME,
         messages=[
@@ -178,7 +178,7 @@ def analyze_conversation_for_retrieval(history_messages: list[dict]) -> dict:
     return normalized
 
 def should_search_chroma(analysis, history):
-    """Rozhodne, zda spustit vyhledávání na základě míry jistoty a počtu klíčových slov."""
+    
     if not analysis.get("need_search"):
         return False
 
@@ -202,7 +202,7 @@ def should_search_chroma(analysis, history):
     return False
 
 def extract_keywords_from_history(history):
-    """Extrahuje a sloučí klíčová slova ze všech uživatelských zpráv v historii konverzace."""
+    
     all_keywords = []
 
     for msg in history:
@@ -218,7 +218,7 @@ def extract_keywords_from_history(history):
     return deduplicate_keep_order(all_keywords)
 
 def build_chroma_query(analysis: dict) -> str:
-    """Sestaví kompaktní dotaz oddělený čárkami z analytických signálů."""
+
     keywords = safe_str_list(analysis.get("keywords"))
     content_type = str(analysis.get("content_type", "")).strip()
 
@@ -233,7 +233,7 @@ def build_chroma_query(analysis: dict) -> str:
 
 
 def format_candidates_for_prompt(candidates: list[dict]) -> str:
-    """Formátuje nalezené kandidáty jako prostý text pro vložení do promptů."""
+
     if not candidates:
         return "No candidates found."
 
@@ -251,12 +251,12 @@ def format_candidates_for_prompt(candidates: list[dict]) -> str:
 
 
 def build_analysis_context(analysis: dict) -> str:
-    """Vykreslí normalizovaná analytická data jako přehledně formátovaný JSON text."""
+   
     return json.dumps(analysis, ensure_ascii=False, indent=2)
 
 
 def build_final_messages(history, analysis: dict, candidates: list[dict]) -> list[dict]:
-    """Sestaví finální zprávy pro dokončení chatu z historie a kontextu vyhledávání."""
+
     from .utils import load_system_prompt
 
     messages = [{"role": "system", "content": load_system_prompt()}]
