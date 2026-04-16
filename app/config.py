@@ -20,7 +20,7 @@ SYSTEM_PROMPT_PATH = os.getenv(
 )
 
 def _is_writable_dir(path: Path) -> bool:
-    """Vrátí True, pokud je adresář zapisovatelný — ověří vytvořením testovacího souboru."""
+
     try:
         path.mkdir(parents=True, exist_ok=True)
         probe = path / ".write_test"
@@ -32,7 +32,6 @@ def _is_writable_dir(path: Path) -> bool:
 
 
 def _sqlite_file_from_url(db_url: str) -> Path | None:
-    """Extrahuje cestu k souboru SQLite z URL SQLAlchemy, je-li to relevantní."""
     if not db_url.startswith("sqlite:///"):
         return None
 
