@@ -6,8 +6,7 @@ from . import db
 
 
 def utcnow() -> datetime:
-    """Vrátí aktuální datum a čas v UTC používaný jako výchozí hodnota modelu."""
-    return datetime.now(timezone.utc)
+       return datetime.now(timezone.utc)
 
 
 class Chat(db.Model):
