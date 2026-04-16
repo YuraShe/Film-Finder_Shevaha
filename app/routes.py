@@ -30,7 +30,6 @@ api_bp = Blueprint('api', __name__)
 
 @api_bp.get("/chats")
 def list_chats():
-    """Vrátí seznam chatů pro aktuální relaci prohlížeče."""
     client_id = get_client_id()
     chats = (
         Chat.query.filter_by(client_id=client_id)
@@ -56,7 +55,7 @@ def create_chat():
 
 @api_bp.get("/chats/<chat_id>/messages")
 def get_messages(chat_id: str):
-    """Vrátí metadata chatu a seřazené zprávy podle ID chatu."""
+
     try:
         chat = get_chat_or_404(chat_id)
     except ValueError as exc:
@@ -71,7 +70,6 @@ def get_messages(chat_id: str):
 
 @api_bp.patch("/chats/<chat_id>")
 def rename_chat(chat_id: str):
-    """Přejmenuje existující chat patřící k aktuální relaci."""
     try:
         chat = get_chat_or_404(chat_id)
     except ValueError as exc:
@@ -92,7 +90,7 @@ def rename_chat(chat_id: str):
 
 @api_bp.delete("/chats/<chat_id>")
 def delete_chat(chat_id: str):
-    """Smaže chat a všechny jeho zprávy."""
+
     try:
         chat = get_chat_or_404(chat_id)
     except ValueError as exc:
@@ -107,7 +105,7 @@ def delete_chat(chat_id: str):
 
 @api_bp.post("/chats/<chat_id>/stream")
 def stream_chat(chat_id: str):
-    """Streamuje odpověď asistenta na zprávu uživatele přes SSE."""
+
     try:
         chat = get_chat_or_404(chat_id)
     except ValueError as exc:
@@ -138,8 +136,7 @@ def stream_chat(chat_id: str):
 
     @stream_with_context
     def generate():
-        """Generuje SSE události pro analýzu, vyhledávání a tokeny výstupu modelu."""
-        assistant_parts: list[str] = []
+                assistant_parts: list[str] = []
 
         yield sse("chat", {"chat": serialize_chat(chat)})
         yield sse("user_message", {"message": serialize_message(user_db_message)})
