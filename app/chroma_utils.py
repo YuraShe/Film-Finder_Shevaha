@@ -13,7 +13,7 @@ _movie_collection: Optional[Any] = None
 
 
 def get_embedder() -> SentenceTransformer:
-    """Vytvoří a uloží do cache instanci embedovacího modelu sentence-transformers."""
+
     global _embedder
 
     if _embedder is None:
@@ -26,7 +26,7 @@ def get_embedder() -> SentenceTransformer:
 
 
 def get_chroma_collection():
-    """Vytvoří a uloží do cache handle na cílovou Chroma kolekci."""
+
     global _chroma_client, _movie_collection
 
     if _chroma_client is None:
@@ -47,7 +47,7 @@ def get_chroma_collection():
 
 
 def search_movies(user_query: str, n_results: int = 5) -> list[dict]:
-    """Prohledá kolekci filmů podle podobnosti embeddingů a vrátí výsledky."""
+
     user_query = (user_query or "").strip()
     if not user_query:
         return []
