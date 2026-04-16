@@ -2,7 +2,7 @@ import json
 import sys
 import os
 
-# Add the current directory's parent (app/) to the path
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from chroma_utils import get_embedder, get_chroma_collection
@@ -11,7 +11,7 @@ import config
 DATASET_PATH = config.BASE_DIR.parent / "datasets" / "keywords_top100_movies.json"
 
 def main():
-    """Načte záznamy datasetu, vytvoří jejich embeddingy a vloží je do Chroma kolekce."""
+
     embedder = get_embedder()
     collection = get_chroma_collection()
 
