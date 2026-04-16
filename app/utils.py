@@ -12,12 +12,12 @@ except ImportError:  # pragma: no cover - fallback for direct script-style impor
 
 
 def utcnow() -> datetime:
-    """Vrátí aktuální datum a čas v UTC."""
+ 
     return datetime.now(timezone.utc)
 
 
 def get_client_id() -> str:
-    """Vrátí stabilní identifikátor klienta pro relaci, případně ho vytvoří."""
+  
     import re
     import uuid
     from flask import request, session
@@ -38,7 +38,7 @@ def get_client_id() -> str:
 
 
 def load_system_prompt() -> str:
-    """Načte text systémového promptu ze souboru nebo vrátí výchozí záložní prompt."""
+
     path = Path(config.SYSTEM_PROMPT_PATH)
     if path.exists():
         return path.read_text(encoding="utf-8").strip()
@@ -50,7 +50,7 @@ def load_system_prompt() -> str:
 
 
 def serialize_chat(chat) -> dict:
-    """Serializuje instanci modelu Chat do slovníku připraveného pro JSON."""
+
     return {
         "id": chat.id,
         "title": chat.title,
@@ -60,7 +60,7 @@ def serialize_chat(chat) -> dict:
 
 
 def serialize_message(message) -> dict:
-    """Serializuje instanci modelu Message do slovníku připraveného pro JSON."""
+  
     return {
         "id": message.id,
         "chat_id": message.chat_id,
@@ -71,7 +71,7 @@ def serialize_message(message) -> dict:
 
 
 def get_chat_or_404(chat_id: str):
-    """Vrátí chat patřící k aktuální relaci nebo vyvolá ValueError."""
+    
     from flask import session
     from .models import Chat
     client_id = get_client_id()
@@ -82,7 +82,7 @@ def get_chat_or_404(chat_id: str):
 
 
 def get_chat_messages(chat_id: str):
-    """Vrátí zprávy chatu seřazené podle pořadí vytvoření."""
+    
     from .models import Message
     return (
         Message.query.filter_by(chat_id=chat_id)
@@ -92,7 +92,7 @@ def get_chat_messages(chat_id: str):
 
 
 def suggest_chat_title(text: str, limit: int = 48) -> str:
-    """Sestaví krátký název z textu uživatele omezený na maximální délku."""
+  
     cleaned = re.sub(r"\s+", " ", text.strip())
     if not cleaned:
        return "New Chat"
@@ -100,7 +100,7 @@ def suggest_chat_title(text: str, limit: int = 48) -> str:
 
 
 def extract_high_confidence_title(assistant_text: str) -> str | None:
-    """Extrahuje jediný název z výstupu asistenta ve formátu 'Title: ...'."""
+    
     patterns = [
         r"^Title:\s*(.+)$"
     ]
@@ -115,19 +115,19 @@ def extract_high_confidence_title(assistant_text: str) -> str | None:
 
 
 def build_tmdb_search_url(title: str | None) -> str | None:
-    """Sestaví URL pro vyhledávání na TMDB pro zjištěný název."""
+    
     if not title:
         return None
     return f"https://www.themoviedb.org/search?query={quote(title)}"
 
 
 def sse(event: str, data: dict) -> str:
-    """Formátuje obsah Server-Sent Events pro streamované odpovědi."""
+ 
     return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
 
 
 def safe_str_list(value: Any) -> list[str]:
-    """Normalizuje libovolnou hodnotu na vyčištěný seznam neprázdných řetězců."""
+
     if isinstance(value, list):
         result = []
         for item in value:
@@ -146,7 +146,7 @@ def safe_str_list(value: Any) -> list[str]:
 
 
 def deduplicate_keep_order(items: list[str]) -> list[str]:
-    """Odstraní duplicitní řetězce bez ohledu na velikost písmen a zachová pořadí vstupu."""
+
     seen = set()
     result = []
 
